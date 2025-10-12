@@ -1,6 +1,5 @@
 **Planning response structure**
 
-The user hasn’t asked a specific question yet but made a statement. It seems like they want me to describe or outline something. Based on the guidelines, I should provide a detailed spec for a wrapper UI, using Git as a database with REST APIs. I’ll follow the rules and keep it concise but thorough. I'll break it into sections, like architecture and UI features, and ensure the format is assertive and clear without unnecessary explanations or developer jargon. Time to get to it.
 ### Overview
 A wrapper UI that uses Git issues and repository files as the canonical datastore and manages them exclusively through Git REST APIs. The wrapper provides a friendly, role-aware interface, enforces schemas and lifecycle rules, stores structured metadata inside issue bodies and labels, and mediates all reads and writes so Git remains the single source of truth.
 
