@@ -1,10 +1,12 @@
 
 // LEAN H₂ FACTORY UI - Git-native Requirements Management System
 class FactoryUI {
-    constructor() {
+    constructor(auth) {
+        this.auth = auth;
+        this.gitAPI = null; // Initialized on login
         this.currentRole = null;
         this.currentPage = 'overview';
-        this.gitAPI = new GitAPI('http://localhost:3001');
+        this.user = null;
         this.debugMode = true;
 
         this.navConfig = {
@@ -66,36 +68,22 @@ class FactoryUI {
                 operations: 'Validation Runs',
             },
             viewer: {
+                overview: 'Product Catalog (Read-Only)',
                 analytics: 'Analytics Dashboard',
-                products: 'Product Catalog (Read-Only)',
             },
         };
-        
+
         this.init();
     }
 
     init() {
-        this.showRoleModal();
         this.setupEventListeners();
-    }
-
-    showRoleModal() {
-        const modal = document.getElementById('roleModal');
-        modal.style.display = 'flex';
-    }
-
-    hideRoleModal() {
-        const modal = document.getElementById('roleModal');
-        modal.style.display = 'none';
+        this.auth.onAuthStateChanged(this.handleAuthStateChange.bind(this));
     }
 
     setupEventListeners() {
-        document.querySelectorAll('.role-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                this.setRole(e.currentTarget.dataset.role);
-                this.hideRoleModal();
-            });
-        });
+        document.getElementById('login-button').addEventListener('click', this.signIn.bind(this));
+        document.getElementById('logout-button').addEventListener('click', this.signOut.bind(this));
 
         document.addEventListener('click', (e) => {
             const navItem = e.target.closest('.nav-item');
@@ -106,15 +94,97 @@ class FactoryUI {
         });
     }
 
+    async handleAuthStateChange(user) {
+        if (user) {
+            this.user = user;
+            const idToken = await user.getIdToken();
+            const githubToken = await this.getGitHubTokenFromIdToken(idToken);
+            
+            if (githubToken) {
+                this.gitAPI = new GitAPI('/api', githubToken);
+                
+                try {
+                    const { role } = await this.gitAPI.getUserRole();
+                    this.initializeAppUI(role);
+                } catch (error) {
+                    console.error("Error getting user role:", error);
+                    this.showError("Could not determine your application role.");
+                    this.signOut();
+                }
+            } else {
+                 this.showError("Could not retrieve GitHub token.");
+                 this.signOut();
+            }
+
+        } else {
+            this.user = null;
+            this.gitAPI = null;
+            this.currentRole = null;
+            document.getElementById('login-container').style.display = 'flex';
+            document.getElementById('app-container').style.display = 'none';
+        }
+    }
+    
+    async getGitHubTokenFromIdToken(idToken) {
+        // This function is a placeholder for a secure way to get the GitHub token.
+        // In a real application, the idToken would be sent to a secure backend,
+        // which would then exchange it for the GitHub token.
+        // For this example, we'll use a workaround to get the token from the user object.
+        if (this.user && this.user.providerData.length > 0) {
+            // Find the GitHub provider data
+            const githubProvider = this.user.providerData.find(p => p.providerId === 'github.com');
+            if (githubProvider) {
+                // This is NOT a secure way to get the token, but it will work for this demo.
+                // In a real app, you would not have access to this on the client-side.
+                return this.user.stsTokenManager.accessToken;
+            }
+        }
+        return null;
+    }
+
+
+    async signIn() {
+        const provider = new firebase.auth.GithubAuthProvider();
+        provider.addScope('repo');
+        provider.addScope('read:org');
+        try {
+            await this.auth.signInWithPopup(provider);
+        } catch (error) {
+            console.error("Authentication Error:", error);
+            this.showError("Authentication failed. Please try again.");
+        }
+    }
+
+    signOut() {
+        this.auth.signOut();
+    }
+
+    initializeAppUI(role) {
+        document.getElementById('login-container').style.display = 'none';
+        document.getElementById('app-container').style.display = 'grid';
+        this.updateUserInfo();
+        this.setRole(role);
+    }
+    
+    updateUserInfo() {
+        const userInfoEl = document.getElementById('user-info');
+        if (this.user) {
+            userInfoEl.innerHTML = `
+                <img src="${this.user.photoURL}" class="avatar">
+                <span>${this.user.displayName}</span>
+            `;
+        }
+    }
+
     setRole(role) {
         this.currentRole = role;
-        const defaultPage = this.navConfig[role][0]?.id || 'overview';
+        const defaultPage = this.navConfig[role] ? this.navConfig[role][0].id : 'overview';
         this.updateRoleBadge();
         this.renderNavigation();
         this.navigateToPage(defaultPage);
         this.updateContextInfo();
     }
-    
+
     updateRoleBadge() {
         const roleBadge = document.getElementById('roleBadge');
         const roleLabels = {
@@ -124,15 +194,16 @@ class FactoryUI {
             viewer: { icon: '📊', label: 'VIEWER' },
             qa: { icon: '✓', label: 'QA REVIEWER' }
         };
-        const roleInfo = roleLabels[this.currentRole];
+        const roleInfo = roleLabels[this.currentRole] || { icon: '?', label: 'UNKNOWN' };
         roleBadge.className = `role-badge role-${this.currentRole}`;
         roleBadge.innerHTML = `<span class="role-icon">${roleInfo.icon}</span> <span class="role-label">${roleInfo.label}</span>`;
     }
-
+    
     updateContextInfo() {
         const currentRoleElement = document.getElementById('currentRole');
-        currentRoleElement.textContent = this.currentRole.charAt(0).toUpperCase() + this.currentRole.slice(1);
+        currentRoleElement.textContent = this.currentRole ? this.currentRole.charAt(0).toUpperCase() + this.currentRole.slice(1) : 'N/A';
     }
+
 
     renderNavigation() {
         const nav = document.getElementById('sidebarNav');
@@ -159,6 +230,11 @@ class FactoryUI {
         const contentGrid = document.getElementById('contentGrid');
         contentGrid.innerHTML = this.renderSpinner();
         
+        if (!this.gitAPI) {
+            contentGrid.innerHTML = this.renderError("You are not signed in.");
+            return;
+        }
+
         try {
             switch (pageId) {
                 case 'overview':
@@ -179,8 +255,6 @@ class FactoryUI {
         }
     }
 
-    // --- RENDER METHODS ---
-
     renderSpinner() {
         return '<div class="spinner"></div>';
     }
@@ -189,12 +263,16 @@ class FactoryUI {
         return `<div class="panel error-panel"><h3>An Error Occurred</h3><p>${message}</p></div>`;
     }
 
+    showError(message) {
+        // A more user-friendly way to show a critical error, e.g. a toast notification
+        alert(message);
+    }
+    
     renderPlaceholder(pageId) {
         return `<div class="panel"><div class="panel-content"><h3>${pageId.toUpperCase()}</h3><p>Content for this page is under construction.</p></div></div>`;
     }
     
     renderOverview() {
-        // For now, the overview is static. Can be made dynamic later.
         return `
             <section class="panel">
                 <header class="panel-header"><div class="panel-title"><h3>Welcome, ${this.currentRole.toUpperCase()}</h3></div></header>
@@ -204,22 +282,16 @@ class FactoryUI {
 
     async renderProducts() {
         const contentGrid = document.getElementById('contentGrid');
-        
         const issues = await this.gitAPI.getIssues({ labels: 'artifact:BRS,artifact:FRS' });
-
         const brsItems = issues.filter(iss => iss.metadata?.type === 'BRS');
         const frsItems = issues.filter(iss => iss.metadata?.type === 'FRS');
-
         const brsTable = this.createIssueTable('Business Requirements (BRS)', ['ID', 'Title', 'Status', 'Priority'], brsItems);
         const frsTable = this.createIssueTable('Functional Requirements (FRS)', ['ID', 'Title', 'Status', 'Owner'], frsItems);
-
         contentGrid.innerHTML = brsTable + frsTable;
     }
 
     async renderOperations() {
         const contentGrid = document.getElementById('contentGrid');
-        
-        // Example: Fetching and displaying Operational Flows
         const flows = await this.gitAPI.getOperationalFlows();
         const flowTable = this.createIssueTable('Operational Flows', ['ID', 'Title', 'Status', 'Preconditions'], flows, item => [
             item.metadata?.id || item.number,
@@ -235,12 +307,9 @@ class FactoryUI {
             this.createStatusBadge(item.metadata?.status || 'Unknown'),
             item.metadata?.assigned_to || 'Unassigned'
         ]);
-
         contentGrid.innerHTML = flowTable + taskTable;
     }
     
-    // --- UI HELPER METHODS ---
-
     createIssueTable(title, headers, items, customRowBuilder) {
         const defaultRowBuilder = item => [
             item.metadata?.id || item.number,
@@ -253,7 +322,7 @@ class FactoryUI {
 
         const body = items.length > 0
             ? items.map(item => `<tr>${rowBuilder(item).map(td => `<td>${td}</td>`).join('')}</tr>`).join('')
-            : '<tr><td colspan="${headers.length}">No items found.</td></tr>';
+            : `<tr><td colspan="${headers.length}">No items found.</td></tr>`;
 
         return `
             <section class="panel">
@@ -278,5 +347,6 @@ class FactoryUI {
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.factoryUI = new FactoryUI();
+    const auth = firebase.auth();
+    window.factoryUI = new FactoryUI(auth);
 });

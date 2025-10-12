@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,12 +11,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
+    <div id="login-container" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+        <button id="login-button">Sign in with GitHub</button>
+    </div>
+
+    <div class="app-container" id="app-container" style="display: none;">
         <!-- Left Sidebar -->
         <aside class="sidebar" id="sidebar">
             <header class="sidebar-header">
                 <h1>LEAN H₂ FACTORY UI</h1>
                 <p class="tagline">Git-native operator lens. Controller writes only.</p>
+                <div id="user-info"></div>
+                <button id="logout-button">Sign Out</button>
             </header>
             <nav class="sidebar-nav" id="sidebarNav">
                 <!-- Navigation items will be populated by JavaScript based on role -->
@@ -47,39 +54,24 @@
         </main>
     </div>
 
-    <!-- Role Selection Modal (for demo purposes) -->
-    <div class="modal" id="roleModal">
-        <div class="modal-content">
-            <h2>Select Your Role</h2>
-            <div class="role-options">
-                <button class="role-option" data-role="admin">
-                    <span class="role-icon">⚡</span>
-                    <span class="role-name">Factory Admin</span>
-                    <span class="role-desc">Full system access, governance control</span>
-                </button>
-                <button class="role-option" data-role="manager">
-                    <span class="role-icon">⚙️</span>
-                    <span class="role-name">Factory Manager</span>
-                    <span class="role-desc">Requirements management, approvals</span>
-                </button>
-                <button class="role-option" data-role="operator">
-                    <span class="role-icon">🔧</span>
-                    <span class="role-name">Factory Operator</span>
-                    <span class="role-desc">Implementation, task execution</span>
-                </button>
-                <button class="role-option" data-role="viewer">
-                    <span class="role-icon">📊</span>
-                    <span class="role-name">Viewer</span>
-                    <span class="role-desc">Analytics, reporting only</span>
-                </button>
-                <button class="role-option" data-role="qa">
-                    <span class="role-icon">✓</span>
-                    <span class="role-name">QA Reviewer</span>
-                    <span class="role-desc">Validation, testing, compliance</span>
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+    </script>
 
     <script src="git-api.js"></script>
     <script src="app.js"></script>

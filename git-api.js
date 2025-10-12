@@ -2,8 +2,9 @@
 // Connects to the backend service which mediates Git provider APIs.
 
 class GitAPI {
-    constructor(backendUrl = 'http://localhost:3001') {
+    constructor(backendUrl = '/api', githubToken) {
         this.backendUrl = backendUrl;
+        this.githubToken = githubToken;
     }
 
     // Generic API request method for the backend
@@ -14,6 +15,7 @@ class GitAPI {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
+                'Authorization': `Bearer ${this.githubToken}`,
                 ...options.headers,
             },
         };
@@ -31,26 +33,30 @@ class GitAPI {
             throw error;
         }
     }
+    
+    async getUserRole() {
+        return this.makeRequest('/user/role');
+    }
 
     // Issues API
     async getIssues(params = {}) {
         const queryParams = new URLSearchParams(params);
-        return this.makeRequest(`/api/issues?${queryParams}`);
+        return this.makeRequest(`/issues?${queryParams}`);
     }
 
     async getIssue(number) {
-        return this.makeRequest(`/api/issues/${number}`);
+        return this.makeRequest(`/issues/${number}`);
     }
 
     async createIssue(issueData) {
-        return this.makeRequest('/api/issues', {
+        return this.makeRequest('/issues', {
             method: 'POST',
             body: JSON.stringify(issueData),
         });
     }
 
     async updateIssue(number, updates) {
-        return this.makeRequest(`/api/issues/${number}`,
+        return this.makeRequest(`/issues/${number}`,
          {
             method: 'PATCH',
             body: JSON.stringify(updates),
