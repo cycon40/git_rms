@@ -39,7 +39,20 @@ const getSecret = async (secretName) => {
 async function startServer() {
 
     const GITHUB_TOKEN = await getSecret('GITHUB_TOKEN');
-    const GITHUB_REPO_URL = 'https://api.github.com/repos/cycon40/git_rms';
+    
+    // --- Dynamic Repository URL ---
+    // In a cloud or CI/CD environment, the GITHUB_REPOSITORY variable is typically
+    // pre-populated (e.g., 'owner/repo-name'). For local development, we set this
+    // in the .env file.
+    const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY;
+    if (!GITHUB_REPOSITORY) {
+        console.error('FATAL ERROR: "GITHUB_REPOSITORY" environment variable is not set.');
+        console.error('Please set it to the format "owner/repository_name" (e.g., in your .env file).');
+        process.exit(1);
+    }
+    const GITHUB_REPO_URL = `https://api.github.com/repos/${GITHUB_REPOSITORY}`;
+    console.log(`Configured to use repository: ${GITHUB_REPOSITORY}`);
+
 
     app.use(cors());
     app.use(express.json());
