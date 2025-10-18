@@ -1,79 +1,12 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LEAN H₂ FACTORY UI - Git-native Requirements Management</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div id="login-container" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-        <button id="login-button">Sign in with GitHub</button>
-    </div>
-
-    <div class="app-container" id="app-container" style="display: none;">
-        <!-- Left Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <header class="sidebar-header">
-                <h1>LEAN H₂ FACTORY UI</h1>
-                <p class="tagline">Git-native operator lens. Controller writes only.</p>
-                <div id="user-info"></div>
-                <button id="logout-button">Sign Out</button>
-            </header>
-            <nav class="sidebar-nav" id="sidebarNav">
-                <!-- Navigation items will be populated by JavaScript based on role -->
-            </nav>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <!-- Top Bar -->
-            <header class="top-bar">
-                <div class="context-info">
-                    <h2 id="pageTitle">Factory Context</h2>
-                    <p id="contextDetails">Git schema version 2025.10.01 • Active role: <span id="currentRole">Loading...</span></p>
-                </div>
-                <div class="status-badges">
-                    <span class="badge badge-info" id="systemStatus">CAPTURING...</span>
-                    <span class="badge badge-success" id="controllerHealth">CONTROLLER HEALTHY</span>
-                    <div class="role-badge" id="roleBadge">
-                        <span class="role-icon">⚡</span>
-                        <span class="role-label">ADMIN</span>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Content Panels -->
-            <div class="content-grid" id="contentGrid">
-                <!-- Dynamic content will be populated by JavaScript -->
-            </div>
-        </main>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script>
-      // Your web app's Firebase configuration
-      const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-      };
-
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-    </script>
-
-    <script src="git-api.js"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Git RMS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/web/src/main.tsx"></script>
+  </body>
+  </html>

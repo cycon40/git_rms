@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/vite-env.d.ts","./src/components/endpointstag.tsx","./src/components/markdown.tsx","./src/pages/metrics.tsx","./src/pages/requirementdetail.tsx","./src/pages/requirementeditor.tsx","./src/pages/searchview.tsx","./src/pages/wikibrowser.tsx"],"version":"5.9.3"}
